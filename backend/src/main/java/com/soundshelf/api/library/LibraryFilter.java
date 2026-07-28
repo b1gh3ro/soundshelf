@@ -31,6 +31,7 @@ public record LibraryFilter(
     }
 
     /** Text search on the list endpoint should match either the album or the artist. */
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public boolean isFreeTextSearch() {
         return titleContains != null && artistContains == null;
     }

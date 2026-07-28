@@ -83,6 +83,12 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of(409, "Conflict", ex.getMessage(), request.getRequestURI()));
     }
 
+    @ExceptionHandler(com.soundshelf.api.ai.QueryRateLimiter.TooManyQueriesException.class)
+    public ResponseEntity<ApiError> handleRateLimited(RuntimeException ex, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(ApiError.of(429, "Too Many Requests", ex.getMessage(), request.getRequestURI()));
+    }
+
     @ExceptionHandler(UpstreamException.class)
     public ResponseEntity<ApiError> handleUpstream(UpstreamException ex, HttpServletRequest request) {
         log.warn("Upstream call failed: {}", ex.getMessage());

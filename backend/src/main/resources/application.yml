@@ -49,7 +49,7 @@ soundshelf:
     country: US
   ai:
     api-key: ${ANTHROPIC_API_KEY:}
-    model: claude-sonnet-5
+    model: claude-opus-5
     timeout: PT20S
 
 logging:
