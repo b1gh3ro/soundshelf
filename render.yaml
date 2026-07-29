@@ -1,0 +1,43 @@
+# Render blueprint for the Soundshelf API.
+#
+# Deploy: Render dashboard → New → Blueprint → point at this repo.
+# Everything below is provisioned automatically except the two secrets marked
+# sync: false, which Render prompts for on first deploy.
+services:
+  - type: web
+    name: soundshelf-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: singapore
+    healthCheckPath: /actuator/health
+    envVars:
+      # Generated once by Render and kept across deploys, so existing tokens
+      # survive a redeploy.
+      - key: JWT_SECRET
+        generateValue: true
+
+      # Paste the JDBC-form URL from Neon, e.g.
+      # jdbc:postgresql://ep-xxx.ap-southeast-1.aws.neon.tech/soundshelf?sslmode=require
+      # Neon's own copy button gives a postgres:// URI — the JDBC driver needs
+      # the jdbc: prefix, so convert it before pasting.
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+
+      # Set to the deployed frontend origin, no trailing slash.
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+
+      # Optional. Without it the AI page runs on the keyword fallback.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+      # Free instances are memory-constrained; a small pool avoids exhausting
+      # Neon's connection limit during a cold start.
+      - key: DB_POOL_SIZE
+        value: "3"
