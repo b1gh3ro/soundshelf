@@ -8,6 +8,26 @@ natural-language search over it.
 **Demo login:** `demo@soundshelf.app` / `demo1234` — pre-loaded with 80 albums across
 15 genres and 8 decades so the dashboard has something real to show.
 
+![Analytics dashboard](docs/analytics.png)
+
+<details>
+<summary>More screenshots</summary>
+
+**Ask your library** — the plain-English query page. The interpretation and the exact
+filter that ran are shown above the results, so a misread is visible rather than silent.
+
+![Ask your library](docs/ask.png)
+
+**Search** — one entity, three ways in. Albums already saved are marked inline.
+
+![Search](docs/search.png)
+
+**Dark mode** — chart colours are re-stepped for the dark surface, not flipped.
+
+![Analytics in dark mode](docs/analytics-dark.png)
+
+</details>
+
 ---
 
 ## Entity choice: albums
@@ -239,6 +259,45 @@ The AI feature runs on the keyword fallback until you export `ANTHROPIC_API_KEY`
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:3000` | Comma-separated |
 | `ANTHROPIC_API_KEY` | _(empty)_ | Omit to run the AI feature on the fallback parser |
 | `PORT` | `8080` | |
+
+## Deploying
+
+Three free services. The backend ships as a Docker image; `render.yaml` is a Render
+blueprint so most of it is filled in already.
+
+**1. Database — [Neon](https://neon.tech).** Create a project, then take the connection
+string. Neon's copy button gives a `postgres://` URI; the JDBC driver needs the
+`jdbc:` prefix and the credentials split out:
+
+```
+DATABASE_URL=jdbc:postgresql://ep-xxx.ap-southeast-1.aws.neon.tech/soundshelf?sslmode=require
+DATABASE_USERNAME=<neon user>
+DATABASE_PASSWORD=<neon password>
+```
+
+Flyway creates the schema on first boot — nothing to run by hand.
+
+**2. Backend — [Render](https://render.com).** New → Blueprint → point at this repo.
+It reads `render.yaml`, builds `backend/Dockerfile`, and generates `JWT_SECRET` for you.
+Fill in the three database variables above, plus `CORS_ALLOWED_ORIGINS` once step 3 gives
+you a frontend URL, and `ANTHROPIC_API_KEY` if you want the model rather than the
+keyword fallback.
+
+**3. Frontend — [Vercel](https://vercel.com).** Import the repo, set the root directory
+to `frontend`, and add one variable:
+
+```
+NEXT_PUBLIC_API_BASE_URL=https://<your-render-service>.onrender.com
+```
+
+Then go back and set `CORS_ALLOWED_ORIGINS` on Render to the Vercel URL (no trailing
+slash) and redeploy the backend.
+
+**4. Seed the demo account:**
+
+```bash
+API_BASE=https://<your-render-service>.onrender.com ./scripts/seed-demo.sh
+```
 
 ### Tests
 
